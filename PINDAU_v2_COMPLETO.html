@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PINDAU v2 - Gestão Completa</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #2a2a3e;
+            min-height: 100vh;
+            padding: 30px 20px;
+            color: #333;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        .header {
+            text-align: center;
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            border-left: 5px solid;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .summary-card.total { border-left-color: #0097a7; }
+        .summary-card.pago { border-left-color: #22b573; }
+
+        .summary-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .summary-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1a1a2e;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: #0097a7;
+            color: white;
+            border-color: #0097a7;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .import-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            flex-wrap: wrap;
+        }
+
+        .import-btn {
+            padding: 10px 20px;
+            border: 2px solid;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .import-btn.imp1 { border-color: #d32f2f; color: #d32f2f; }
+        .import-btn.imp2 { border-color: #0097a7; color: #0097a7; }
+        .import-btn.imp3 { border-color: #f57c00; color: #f57c00; }
+        .import-btn.imp4 { border-color: #22b573; color: #22b573; }
+
+        .import-btn.active {
+            color: white;
+        }
+
+        .import-btn.imp1.active { background: #d32f2f; }
+        .import-btn.imp2.active { background: #0097a7; }
+        .import-btn.imp3.active { background: #f57c00; }
+        .import-btn.imp4.active { background: #22b573; }
+
+        .import-header {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+            color: white;
+        }
+
+        .import-header .import-title {
+            color: white;
+        }
+
+        .import-header .import-info {
+            color: #ccc;
+        }
+
+        .import-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+        }
+
+        .import-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .info-label {
+            font-weight: 700;
+            color: #aaa;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cost-summary {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .cost-item {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .cost-label {
+            font-size: 13px;
+            color: #aaa;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .cost-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #22b573;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            border-left: 5px solid;
+        }
+
+        .product-card.clip { border-left-color: #d32f2f; }
+        .product-card.fone { border-left-color: #0097a7; }
+        .product-card.alca { border-left-color: #f57c00; }
+        .product-card.antena { border-left-color: #22b573; }
+
+        .product-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        .product-sku {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .product-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .product-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 12px;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .input-field input {
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-color: #0097a7;
+            background: #f0f8f9;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .info-row.highlight {
+            font-weight: 700;
+            color: #1a1a2e;
+            font-size: 16px;
+        }
+
+        .cost-box {
+            background: linear-gradient(135deg, #0097a7 0%, #00bcd4 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .cost-box.clip { background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%); }
+        .cost-box.fone { background: linear-gradient(135deg, #0097a7 0%, #00bcd4 100%); }
+        .cost-box.alca { background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%); }
+        .cost-box.antena { background: linear-gradient(135deg, #22b573 0%, #4caf50 100%); }
+
+        .cost-label {
+            font-size: 13px;
+            font-weight: 700;
+            opacity: 0.95;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            color: white;
+            letter-spacing: 1px;
+        }
+
+        .cost-value {
+            font-size: 36px;
+            font-weight: 900;
+            color: white !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            line-height: 1.2;
+        }
+
+        .btn-salvar {
+            background: #22b573;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            margin-top: 20px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn-salvar:hover {
+            background: #1a9f5d;
+        }
+
+        @media (max-width: 768px) {
+            .products-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 32px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 PINDAU v2 - Gestão Completa de Importações</h1>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-card total">
+                <div class="summary-label">Total Investido</div>
+                <div class="summary-value" id="totalInvestido">R$ 0,00</div>
+            </div>
+            <div class="summary-card pago">
+                <div class="summary-label">Estoque Total</div>
+                <div class="summary-value" id="estoqueTotal">0 un</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="mostrarAbaDashboard()">📋 Importações</button>
+            <button class="tab-btn" onclick="mostrarAbaProdutos()">📦 Produtos</button>
+            <button class="tab-btn" onclick="mostrarAbaCalculadora()">🧮 Calculadora</button>
+        </div>
+
+        <!-- ABA: IMPORTAÇÕES -->
+        <div id="abaDashboard" class="tab-content active">
+            <div class="import-selector" id="importSelector"></div>
+            <div id="conteudoImportacoes"></div>
+        </div>
+
+        <!-- ABA: PRODUTOS -->
+        <div id="abaProdutos" class="tab-content">
+            <div id="conteudoProdutos"></div>
+        </div>
+
+        <!-- ABA: CALCULADORA -->
+        <div id="abaCalculadora" class="tab-content">
+            <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                <div style="font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 30px;">🧮 Calculadora de Duração do Estoque</div>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #666; margin-bottom: 8px; text-transform: uppercase;">Data de Entrada</label>
+                        <input type="date" id="calc_data_entrada" onchange="calcularDuracaoCompleta()" oninput="calcularDuracaoCompleta()" style="width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #666; margin-bottom: 8px; text-transform: uppercase;">Quantidade Entrada</label>
+                        <input type="number" id="calc_qtd_entrada" placeholder="Ex: 7005" onchange="calcularDuracaoCompleta()" oninput="calcularDuracaoCompleta()" style="width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #666; margin-bottom: 8px; text-transform: uppercase;">Data Atual</label>
+                        <input type="date" id="calc_data_atual" onchange="calcularDuracaoCompleta()" oninput="calcularDuracaoCompleta()" style="width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #666; margin-bottom: 8px; text-transform: uppercase;">Estoque Atual</label>
+                        <input type="number" id="calc_qtd_atual" placeholder="Ex: 5993" onchange="calcularDuracaoCompleta()" oninput="calcularDuracaoCompleta()" style="width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                    </div>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #22b573 0%, #4caf50 100%); color: white; padding: 30px; border-radius: 12px; text-align: center;">
+                    <div id="calc_resultado_completo" style="font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 15px;">Preencha os campos acima</div>
+                    <div id="calc_resultado_valor" style="font-size: 48px; font-weight: 900;">-</div>
+                </div>
+
+                <div id="calc_detalhes" style="margin-top: 30px; display: none;">
+                    <div style="background: #f8f9fb; padding: 20px; border-radius: 12px;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                            <div>
+                                <div style="font-size: 12px; color: #999; margin-bottom: 5px;">Consumido</div>
+                                <div id="calc_consumido" style="font-size: 18px; font-weight: 700; color: #1a1a2e;">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: #999; margin-bottom: 5px;">Dias Decorridos</div>
+                                <div id="calc_dias_decorridos" style="font-size: 18px; font-weight: 700; color: #1a1a2e;">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: #999; margin-bottom: 5px;">Taxa Diária</div>
+                                <div id="calc_taxa_diaria" style="font-size: 18px; font-weight: 700; color: #1a1a2e;">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 12px; color: #999; margin-bottom: 5px;">Duração (dias)</div>
+                                <div id="calc_duracao_dias" style="font-size: 18px; font-weight: 700; color: #1a1a2e;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const IMPORTACOES = [
+            {
+                id: 1,
+                pedido: "8938-2025-VSBXM",
+                cnpj: "74.359.894/0001-47",
+                orcamento: "29/09/2025",
+                nf: "001 • 10/02/2026",
+                status: "✅ Concluída",
+                cor: "#d32f2f",
+                custos: { produtos: 13978.52, impostos: 9770, logistica: 2814.53, total: 26563.05 },
+                produtos: [
+                    { nome: "CLIP TALKABOOT", ncm: "39269090", qtdNF: 2000, qtdRecebida: 2000, defeitos: 0, custoNF: 2.23, diasVenda: 45 },
+                    { nome: "FONE PTT PRETO", ncm: "85183000", qtdNF: 5000, qtdRecebida: 5000, defeitos: 226, custoNF: 2.595839, diasVenda: 30 }
+                ]
+            },
+            {
+                id: 2,
+                pedido: "2026-4C5CB",
+                cnpj: "46.189.893/0001-66",
+                orcamento: "07/05/2026",
+                container: "338",
+                entrega: "13/08/2026",
+                nf: "007/08/2026",
+                status: "🚢 Entregue",
+                cor: "#0097a7",
+                custos: { produtos: 34235.28, impostos: 24499.09, logistica: 3248.21, total: 61983.58 },
+                produtos: [
+                    { nome: "CLIP TALKABOOT", ncm: "39269090", qtdNF: 5000, qtdRecebida: 5005, defeitos: 0, custoNF: 1.68, diasVenda: 45 },
+                    { nome: "FONE PTT PRETO", ncm: "85183000", qtdNF: 9900, qtdRecebida: 9900, defeitos: 100, custoNF: 2.37, diasVenda: 30 },
+                    { nome: "ALÇA DE PUNHO", ncm: "63079090", qtdNF: 3500, qtdRecebida: 3600, defeitos: 0, custoNF: 0.0852, diasVenda: 60 }
+                ]
+            },
+            {
+                id: 3,
+                pedido: "2026-BTSTU",
+                cnpj: "74.359.894/0001-47",
+                orcamento: "16/06/2026",
+                container: "352",
+                status: "🟡 Em Armazém",
+                nf: "Desembaraçada",
+                custos: { produtos: 20318.27, impostos: 0, logistica: 0, total: 20318.27 },
+                produtos: [
+                    { nome: "FONE CONCHA TIPO D SIMPLES", ncm: "85183000", qtdNF: 2000, qtdRecebida: 2000, defeitos: 0, custoNF: 1.75, diasVenda: 90 },
+                    { nome: "FONE CONCHA TIPO D PREMIUM", ncm: "85183000", qtdNF: 1000, qtdRecebida: 1000, defeitos: 0, custoNF: 2.50, diasVenda: 90 }
+                ]
+            },
+            {
+                id: 4,
+                pedido: "2026-ELWSB",
+                cnpj: "74.359.894/0001-47",
+                orcamento: "14/07/2026",
+                status: "🟡 Em Armazém (China)",
+                nf: "Falta embarcar",
+                custos: { produtos: 34235.28, impostos: 24499.09, logistica: 5547.30, total: 64281.67 },
+                produtos: [
+                    { nome: "ANTENAS LR771", ncm: "85291000", qtdNF: 1500, qtdRecebida: 0, defeitos: 0, custoNF: 8.50, diasVenda: 120 },
+                    { nome: "FONE CONCHA TIPO D P1", ncm: "85183000", qtdNF: 3000, qtdRecebida: 0, defeitos: 0, custoNF: 4.80, diasVenda: 60 }
+                ]
+            }
+        ];
+
+        function fmt(v) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+        }
+
+        function salvarDados() {
+            localStorage.setItem('PINDAU_DADOS', JSON.stringify(IMPORTACOES));
+            alert('✅ Dados salvos com sucesso!');
+        }
+
+        function carregarDados() {
+            const dados = localStorage.getItem('PINDAU_DADOS');
+            if (dados) {
+                Object.assign(IMPORTACOES, JSON.parse(dados));
+            }
+        }
+
+        function atualizarTotais() {
+            let totalInv = 0;
+            let totalEst = 0;
+            IMPORTACOES.forEach(imp => {
+                totalInv += imp.custos.total;
+                imp.produtos.forEach(prod => {
+                    totalEst += (prod.qtdRecebida - prod.defeitos);
+                });
+            });
+            document.getElementById('totalInvestido').textContent = fmt(totalInv);
+            document.getElementById('estoqueTotal').textContent = totalEst.toLocaleString('pt-BR') + ' un';
+        }
+
+        function renderImportSelector() {
+            let html = '';
+            IMPORTACOES.forEach(imp => {
+                html += `<button class="import-btn imp${imp.id} ${imp.id === 1 ? 'active' : ''}" onclick="selecionarImportacao(${imp.id})">Import ${imp.id}</button>`;
+            });
+            document.getElementById('importSelector').innerHTML = html;
+        }
+
+        function calcularCustoDistribuido(imp, prod) {
+            const custoTotalNF = prod.qtdNF * prod.custoNF;
+            const totalNF = imp.produtos.reduce((sum, p) => sum + (p.qtdNF * p.custoNF), 0);
+            const proporcao = custoTotalNF / totalNF;
+            return imp.custos.total * proporcao;
+        }
+
+        function calcularCustoComImpostos(imp, prod) {
+            const custoDistribuido = calcularCustoDistribuido(imp, prod);
+            return prod.qtdRecebida > 0 ? custoDistribuido / prod.qtdRecebida : 0;
+        }
+
+        function calcularCustoFinal(imp, prod) {
+            const custoDistribuido = calcularCustoDistribuido(imp, prod);
+            const qtdAproveitavel = prod.qtdRecebida - prod.defeitos;
+            return qtdAproveitavel > 0 ? custoDistribuido / qtdAproveitavel : 0;
+        }
+
+        function selecionarImportacao(id) {
+            document.querySelectorAll('.import-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.import-btn.imp${id}`).classList.add('active');
+
+            const imp = IMPORTACOES.find(i => i.id === id);
+            let html = `
+                <div class="import-header">
+                    <div class="import-title">Importação #${imp.id} — ${imp.pedido}</div>
+                    <div class="import-info">
+                        <div class="info-item"><span class="info-label">CNPJ</span>${imp.cnpj}</div>
+                        <div class="info-item"><span class="info-label">Orçamento</span>${imp.orcamento}</div>
+                        ${imp.container ? `<div class="info-item"><span class="info-label">Container</span>${imp.container}</div>` : ''}
+                        ${imp.entrega ? `<div class="info-item"><span class="info-label">Entrega</span>${imp.entrega}</div>` : ''}
+                        <div class="info-item"><span class="info-label">NF</span>${imp.nf}</div>
+                        <div class="info-item"><span class="info-label">Status</span>${imp.status}</div>
+                    </div>
+
+                    <div class="cost-summary">
+                        <div class="cost-item">
+                            <div class="cost-label">Produtos</div>
+                            <div class="cost-value">${fmt(imp.custos.produtos)}</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">Impostos</div>
+                            <div class="cost-value">${fmt(imp.custos.impostos)}</div>
+                        </div>
+                        <div class="cost-item">
+                            <div class="cost-label">Logística</div>
+                            <div class="cost-value">${fmt(imp.custos.logistica)}</div>
+                        </div>
+                        <div class="cost-item" style="background: linear-gradient(135deg, #22b573 0%, #4caf50 100%); border-radius: 12px;">
+                            <div class="cost-label" style="color: white;">TOTAL</div>
+                            <div class="cost-value" style="color: white; font-weight: 900;">${fmt(imp.custos.total)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            html += `<div class="products-grid">`;
+            imp.produtos.forEach(prod => {
+                const cor = prod.nome.includes('CLIP') ? 'clip' : prod.nome.includes('ALÇA') ? 'alca' : prod.nome.includes('ANTENA') ? 'antena' : 'fone';
+                const qtdAproveitavel = prod.qtdRecebida - prod.defeitos;
+                const custoFinal = calcularCustoFinal(imp, prod);
+                const custoTotal = custoFinal * qtdAproveitavel;
+
+                html += `
+                    <div class="product-card ${cor}">
+                        <div class="product-name">${prod.nome}</div>
+                        <div class="product-sku">NCM ${prod.ncm}</div>
+
+                        <div class="product-section">
+                            <div class="section-title">Quantidade</div>
+                            <div class="input-group">
+                                <div class="input-field">
+                                    <label>NF Original</label>
+                                    <input type="number" value="${prod.qtdNF}" readonly>
+                                </div>
+                                <div class="input-field">
+                                    <label>Recebida</label>
+                                    <input type="number" id="qtd_${id}_${prod.nome}" value="${prod.qtdRecebida}" onchange="atualizarProduto(${id}, '${prod.nome}', 'qtd', this.value)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="product-section">
+                            <div class="section-title">Defeitos/Testes</div>
+                            <div class="input-field">
+                                <label>Qtd. com Defeito</label>
+                                <input type="number" id="def_${id}_${prod.nome}" value="${prod.defeitos}" onchange="atualizarProduto(${id}, '${prod.nome}', 'def', this.value)">
+                            </div>
+                            <div class="info-row highlight" style="margin-top: 10px;">
+                                <span>Aproveitável:</span>
+                                <span id="aprv_${id}_${prod.nome}">${qtdAproveitavel}</span>
+                            </div>
+                        </div>
+
+                        <div class="product-section">
+                            <div class="section-title">Custos Unitários</div>
+                            <div class="info-row"><span style="color: #999;">1️⃣ NF (Original):</span><span>${fmt(prod.custoNF)}</span></div>
+                            <div class="info-row"><span style="color: #999;">2️⃣ Com Impostos:</span><span id="comimpostos_${id}_${prod.nome}">${fmt(calcularCustoComImpostos(imp, prod))}</span></div>
+                            <div class="info-row highlight"><span>3️⃣ Final (com defeitos):</span><span id="final_${id}_${prod.nome}" style="color: #22b573; font-size: 18px;">${fmt(custoFinal)}</span></div>
+                        </div>
+
+                        <div class="cost-box ${cor}">
+                            <div class="cost-label">Investimento Total</div>
+                            <div class="cost-value">${fmt(custoTotal)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            html += `<button class="btn-salvar" onclick="salvarDados()">💾 SALVAR DADOS</button>`;
+
+            document.getElementById('conteudoImportacoes').innerHTML = html;
+        }
+
+        function atualizarProduto(impId, prodNome, campo, valor) {
+            const imp = IMPORTACOES.find(i => i.id === impId);
+            const prod = imp.produtos.find(p => p.nome === prodNome);
+
+            if (campo === 'qtd') {
+                prod.qtdRecebida = parseInt(valor) || 0;
+            } else if (campo === 'def') {
+                prod.defeitos = parseInt(valor) || 0;
+            }
+
+            const qtdAproveitavel = prod.qtdRecebida - prod.defeitos;
+            document.getElementById(`aprv_${impId}_${prodNome}`).textContent = qtdAproveitavel;
+
+            // Atualizar valores de custo
+            const custoComImpostos = calcularCustoComImpostos(imp, prod);
+            const custoFinal = calcularCustoFinal(imp, prod);
+
+            const elemComImpostos = document.getElementById(`comimpostos_${impId}_${prodNome}`);
+            const elemFinal = document.getElementById(`final_${impId}_${prodNome}`);
+
+            if (elemComImpostos) elemComImpostos.textContent = fmt(custoComImpostos);
+            if (elemFinal) elemFinal.textContent = fmt(custoFinal);
+
+            atualizarTotais();
+        }
+
+        function calcularDuracaoCompleta() {
+            const dataEntrada = document.getElementById('calc_data_entrada').value;
+            const qtdEntrada = parseInt(document.getElementById('calc_qtd_entrada').value) || 0;
+            const dataAtual = document.getElementById('calc_data_atual').value;
+            const qtdAtual = parseInt(document.getElementById('calc_qtd_atual').value) || 0;
+
+            const resultadoElem = document.getElementById('calc_resultado_completo');
+            const valorElem = document.getElementById('calc_resultado_valor');
+            const detalhesElem = document.getElementById('calc_detalhes');
+
+            if (!dataEntrada || !qtdEntrada || !dataAtual || !qtdAtual) {
+                resultadoElem.textContent = 'Preencha os campos acima';
+                valorElem.textContent = '-';
+                detalhesElem.style.display = 'none';
+                return;
+            }
+
+            // Calcular dias decorridos
+            const entrada = new Date(dataEntrada);
+            const atual = new Date(dataAtual);
+            const diasDecorridos = Math.max(1, Math.floor((atual - entrada) / (1000 * 60 * 60 * 24)));
+
+            // Calcular consumido
+            const consumido = qtdEntrada - qtdAtual;
+
+            if (consumido <= 0) {
+                resultadoElem.textContent = 'Estoque atual é maior que o entrada';
+                valorElem.textContent = '-';
+                detalhesElem.style.display = 'none';
+                return;
+            }
+
+            // Calcular taxa diária
+            const taxaDiaria = consumido / diasDecorridos;
+
+            if (taxaDiaria <= 0) {
+                resultadoElem.textContent = '⚠️ Consumo inválido';
+                valorElem.textContent = '-';
+                detalhesElem.style.display = 'none';
+                return;
+            }
+
+            // Calcular duração
+            const diasRestantes = qtdAtual / taxaDiaria;
+            const mesesRestantes = (diasRestantes / 30).toFixed(1);
+
+            // Atualizar resultado - mostrar dias ou meses automaticamente
+            resultadoElem.textContent = 'Duração do Estoque';
+
+            if (mesesRestantes < 1) {
+                // Mostrar em dias
+                valorElem.innerHTML = `${Math.round(diasRestantes)} <span style="font-size: 24px; font-weight: 600;">dias</span>`;
+            } else {
+                // Mostrar em meses
+                valorElem.innerHTML = `${mesesRestantes} <span style="font-size: 24px; font-weight: 600;">meses</span>`;
+            }
+
+            // Mostrar detalhes
+            document.getElementById('calc_consumido').textContent = `${consumido} un`;
+            document.getElementById('calc_dias_decorridos').textContent = `${diasDecorridos} dias`;
+            document.getElementById('calc_taxa_diaria').textContent = `${taxaDiaria.toFixed(2)} un/dia`;
+            document.getElementById('calc_duracao_dias').textContent = `${Math.round(diasRestantes)} dias`;
+            detalhesElem.style.display = 'block';
+        }
+
+        function mostrarAbaDashboard() {
+            document.getElementById('abaDashboard').classList.add('active');
+            document.getElementById('abaProdutos').classList.remove('active');
+            document.getElementById('abaCalculadora').classList.remove('active');
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.querySelectorAll('.tab-btn')[1].classList.remove('active');
+            document.querySelectorAll('.tab-btn')[2].classList.remove('active');
+        }
+
+        function mostrarAbaProdutos() {
+            document.getElementById('abaDashboard').classList.remove('active');
+            document.getElementById('abaProdutos').classList.add('active');
+            document.getElementById('abaCalculadora').classList.remove('active');
+            document.querySelectorAll('.tab-btn')[0].classList.remove('active');
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            document.querySelectorAll('.tab-btn')[2].classList.remove('active');
+            renderizarProdutos();
+        }
+
+        function mostrarAbaCalculadora() {
+            document.getElementById('abaDashboard').classList.remove('active');
+            document.getElementById('abaProdutos').classList.remove('active');
+            document.getElementById('abaCalculadora').classList.add('active');
+            document.querySelectorAll('.tab-btn')[0].classList.remove('active');
+            document.querySelectorAll('.tab-btn')[1].classList.remove('active');
+            document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        }
+
+        function renderizarProdutos() {
+            const produtos = {};
+
+            IMPORTACOES.forEach(imp => {
+                imp.produtos.forEach(prod => {
+                    if (!produtos[prod.nome]) {
+                        produtos[prod.nome] = {
+                            nome: prod.nome,
+                            ncm: prod.ncm,
+                            historico: [],
+                            totalQtdNF: 0,
+                            totalQtdRecebida: 0,
+                            totalDefeitos: 0,
+                            totalAproveitavel: 0,
+                            totalCusto: 0,
+                            estoqueAtivo: 0,
+                            diasVenda: prod.diasVenda,
+                            totalEncomendado: 0
+                        };
+                    }
+                    const qtdAprv = prod.qtdRecebida - prod.defeitos;
+                    const custoFinal = calcularCustoFinal(imp, prod);
+                    produtos[prod.nome].historico.push({
+                        imp: imp.id,
+                        pedido: imp.pedido,
+                        qtdNF: prod.qtdNF,
+                        qtdRec: prod.qtdRecebida,
+                        def: prod.defeitos,
+                        aprv: qtdAprv
+                    });
+                    produtos[prod.nome].totalQtdNF += prod.qtdNF;
+                    produtos[prod.nome].totalQtdRecebida += prod.qtdRecebida;
+                    produtos[prod.nome].totalDefeitos += prod.defeitos;
+                    produtos[prod.nome].totalAproveitavel += qtdAprv;
+                    produtos[prod.nome].totalEncomendado += prod.qtdRecebida;
+                    produtos[prod.nome].totalCusto += custoFinal * qtdAprv;
+                });
+            });
+
+            let html = '<div class="products-grid">';
+            const estoquesSalvos = JSON.parse(localStorage.getItem('PINDAU_ESTOQUES') || '{}');
+
+            Object.values(produtos).forEach(prod => {
+                const cor = prod.nome.includes('CLIP') ? 'clip' : prod.nome.includes('ALÇA') ? 'alca' : prod.nome.includes('ANTENA') ? 'antena' : 'fone';
+                const custoPorUn = prod.totalAproveitavel > 0 ? prod.totalCusto / prod.totalAproveitavel : 0;
+                const diasParaComprar = prod.estoqueAtivo > 0 ? Math.ceil((prod.estoqueAtivo / (prod.totalAproveitavel / (prod.historico.length * 60))) * prod.diasVenda) : 0;
+                const estoqueAtualSalvo = estoquesSalvos[prod.nome] !== undefined ? estoquesSalvos[prod.nome] : prod.totalAproveitavel;
+
+                html += `
+                    <div class="product-card ${cor}">
+                        <div class="product-name">${prod.nome}</div>
+                        <div class="product-sku">NCM ${prod.ncm}</div>
+
+                        <div class="product-section">
+                            <div class="section-title">Estoque</div>
+                            <div class="info-row" style="margin-bottom: 12px;">
+                                <span style="color: #999;">Recebido:</span>
+                                <span id="estcomp_${prod.nome}" style="font-weight: 700;">${prod.totalEncomendado} un</span>
+                            </div>
+                            <div class="input-field" style="margin-bottom: 12px;">
+                                <label>Estoque Atual</label>
+                                <input type="number" id="estatu_${prod.nome}" value="${estoqueAtualSalvo}" onchange="atualizarEstoqueAtual('${prod.nome}', this.value)">
+                            </div>
+                            <div class="info-row" style="font-weight: 700; color: #22b573; margin-top: 12px;">
+                                <span id="dur_${prod.nome}">⏱️ Calculando duração...</span>
+                            </div>
+                        </div>
+
+                        <div class="product-section">
+                            <div class="section-title">Custo Atual</div>
+                            <div class="info-row highlight" style="font-size: 16px;">
+                                <span>Custo Unit.:</span>
+                                <span>${fmt(custoPorUn)}</span>
+                            </div>
+                        </div>
+
+                        <div class="product-section">
+                            <div class="section-title">Histórico de Compras</div>
+                            ${prod.historico.map(h => `
+                                <div class="info-row">
+                                    <span><strong>Import ${h.imp}</strong> (${h.pedido})</span>
+                                    <span>${h.aprv} un</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="cost-box ${cor}">
+                            <div class="cost-label">Investimento Total</div>
+                            <div class="cost-value">${fmt(prod.totalCusto)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            document.getElementById('conteudoProdutos').innerHTML = html;
+
+            // Recalcula a duração para todos os produtos com estoques salvos
+            setTimeout(() => {
+                const estoquesSalvos = JSON.parse(localStorage.getItem('PINDAU_ESTOQUES') || '{}');
+                Object.keys(estoquesSalvos).forEach(prodNome => {
+                    atualizarEstoqueAtual(prodNome, estoquesSalvos[prodNome]);
+                });
+            }, 100);
+        }
+
+        function calcularDuracaoPorMedia(estoqueComprado, estoqueAtual, dataImportacao) {
+            if (estoqueComprado <= 0 || estoqueAtual >= estoqueComprado) return null;
+
+            const consumido = estoqueComprado - estoqueAtual;
+            if (consumido <= 0) return null;
+
+            const hoje = new Date();
+            const impData = new Date(dataImportacao);
+            const diasDecorridos = Math.max(1, Math.floor((hoje - impData) / (1000 * 60 * 60 * 24)));
+
+            const taxaDiaria = consumido / diasDecorridos;
+            const diasRestantes = estoqueAtual / taxaDiaria;
+            const mesesRestantes = (diasRestantes / 30).toFixed(1);
+
+            return mesesRestantes;
+        }
+
+        function atualizarEstoqueAtual(prodNome, novoEstoque) {
+            novoEstoque = parseInt(novoEstoque) || 0;
+            const elem = document.getElementById(`estatu_${prodNome}`);
+            if (elem) elem.value = novoEstoque;
+
+            // Salva no localStorage para persistir
+            let estoques = JSON.parse(localStorage.getItem('PINDAU_ESTOQUES') || '{}');
+            estoques[prodNome] = novoEstoque;
+            localStorage.setItem('PINDAU_ESTOQUES', JSON.stringify(estoques));
+
+            // Procura o produto em todas as importações
+            let estoqueComprado = 0;
+            let dataPrimeiraImportacao = null;
+
+            IMPORTACOES.forEach(imp => {
+                const prod = imp.produtos.find(p => p.nome === prodNome);
+                if (prod) {
+                    estoqueComprado += prod.qtdRecebida;
+
+                    // Usa data de entrega (se disponível) ou NF, não orçamento
+                    let dataImp = null;
+                    if (imp.entrega) {
+                        dataImp = new Date(imp.entrega.split('/').reverse().join('-'));
+                    } else if (imp.nf && !imp.nf.includes('Falta')) {
+                        // Tenta extrair data da NF (formato "001 • 10/02/2026")
+                        const match = imp.nf.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+                        if (match) {
+                            dataImp = new Date(match[3] + '-' + match[2] + '-' + match[1]);
+                        }
+                    }
+
+                    if (dataImp && !dataPrimeiraImportacao) {
+                        dataPrimeiraImportacao = dataImp;
+                    } else if (dataImp && dataImp < dataPrimeiraImportacao) {
+                        dataPrimeiraImportacao = dataImp;
+                    }
+                }
+            });
+
+            // Recalcula a duração
+            const duracao = calcularDuracaoPorMedia(estoqueComprado, novoEstoque, dataPrimeiraImportacao);
+            const elemDuracao = document.getElementById(`dur_${prodNome}`);
+
+            if (elemDuracao) {
+                if (duracao !== null) {
+                    elemDuracao.textContent = `⏱️ Durará ${duracao} meses em média`;
+                } else {
+                    elemDuracao.textContent = `⏱️ Estoque > do que foi comprado`;
+                }
+            }
+        }
+
+        carregarDados();
+        renderImportSelector();
+        atualizarTotais();
+        selecionarImportacao(1);
+    </script>
+</body>
+</html>
