@@ -483,10 +483,10 @@
                 nf: "007/08/2026",
                 status: "🚢 Entregue",
                 cor: "#0097a7",
-                custos: { produtos: 34235.28, impostos: 24499.09, logistica: 3248.21, total: 61983.58 },
+                custos: { produtos: 34235.28, impostos: 23799.87, logistica: 3248.21, total: 61283.36 },
                 produtos: [
-                    { nome: "CLIP TALKABOOT", ncm: "39269090", qtdNF: 5000, qtdRecebida: 5005, defeitos: 0, custoNF: 1.68, diasVenda: 45 },
-                    { nome: "FONE PTT PRETO", ncm: "85183000", qtdNF: 9900, qtdRecebida: 9900, defeitos: 100, custoNF: 2.37, diasVenda: 30 },
+                    { nome: "CLIP TALKABOOT", ncm: "39269090", qtdNF: 5000, qtdRecebida: 5005, defeitos: 0, custoNF: 1.6817, diasVenda: 45 },
+                    { nome: "FONE PTT PRETO", ncm: "85183000", qtdNF: 9900, qtdRecebida: 9900, defeitos: 100, custoNF: 2.3703, diasVenda: 30 },
                     { nome: "ALÇA DE PUNHO", ncm: "63079090", qtdNF: 3500, qtdRecebida: 3600, defeitos: 0, custoNF: 0.0852, diasVenda: 60 }
                 ]
             },
@@ -498,10 +498,10 @@
                 container: "352",
                 status: "🟡 Em Armazém",
                 nf: "Desembaraçada",
-                custos: { produtos: 20318.27, impostos: 0, logistica: 0, total: 20318.27 },
+                custos: { produtos: 20156.70, impostos: 16425.00, logistica: 2464.88, total: 39046.58 },
                 produtos: [
-                    { nome: "FONE CONCHA TIPO D SIMPLES", ncm: "85183000", qtdNF: 2000, qtdRecebida: 2000, defeitos: 0, custoNF: 1.75, diasVenda: 90 },
-                    { nome: "FONE CONCHA TIPO D PREMIUM", ncm: "85183000", qtdNF: 1000, qtdRecebida: 1000, defeitos: 0, custoNF: 2.50, diasVenda: 90 }
+                    { nome: "FONE CONCHA TIPO D SIMPLES", ncm: "85183000", qtdNF: 2000, qtdRecebida: 2000, defeitos: 0, custoNF: 4.21, diasVenda: 90 },
+                    { nome: "FONE CONCHA TIPO D PREMIUM", ncm: "85183000", qtdNF: 1000, qtdRecebida: 1000, defeitos: 0, custoNF: 9.23, diasVenda: 90 }
                 ]
             },
             {
@@ -557,6 +557,16 @@
         }
 
         function calcularCustoDistribuido(imp, prod) {
+            // Usar investimentos exatos da memória PINDAU para Imp 2
+            if (imp.id === 2) {
+                const investimentos = {
+                    "CLIP TALKABOOT": 16017.93,
+                    "FONE PTT PRETO": 44697.37,
+                    "ALÇA DE PUNHO": 568.06
+                };
+                return investimentos[prod.nome] || 0;
+            }
+
             const custoTotalNF = prod.qtdNF * prod.custoNF;
             const totalNF = imp.produtos.reduce((sum, p) => sum + (p.qtdNF * p.custoNF), 0);
             const proporcao = custoTotalNF / totalNF;
@@ -565,13 +575,28 @@
 
         function calcularCustoComImpostos(imp, prod) {
             const custoDistribuido = calcularCustoDistribuido(imp, prod);
-            return prod.qtdRecebida > 0 ? custoDistribuido / prod.qtdRecebida : 0;
+            return prod.qtdNF > 0 ? custoDistribuido / prod.qtdNF : 0;
         }
 
         function calcularCustoFinal(imp, prod) {
             const custoDistribuido = calcularCustoDistribuido(imp, prod);
             const qtdAproveitavel = prod.qtdRecebida - prod.defeitos;
             return qtdAproveitavel > 0 ? custoDistribuido / qtdAproveitavel : 0;
+        }
+
+        function getInvestimentoProduto(imp, prod) {
+            // Valor da NF fiscal COM impostos (II + IPI) por produto
+            // Fonte: NF PI677-26 - valores TOTAL da tabela DADOS DOS PRODUTOS
+            if (imp.id === 2) {
+                const investProduto = {
+                    "CLIP TALKABOOT": 14941.34,
+                    "FONE PTT PRETO": 41423.45,
+                    "ALÇA DE PUNHO": 522.77
+                };
+                return investProduto[prod.nome] || (prod.qtdNF * prod.custoNF);
+            }
+            // Fallback pra outras importações: usa produto puro
+            return prod.qtdNF * prod.custoNF;
         }
 
         function selecionarImportacao(id) {
@@ -660,6 +685,7 @@
                         <div class="cost-box ${cor}">
                             <div class="cost-label">Investimento Total</div>
                             <div class="cost-value">${fmt(custoTotal)}</div>
+                            <div class="cost-product" style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 8px;">Investimento Produto<br><strong>${fmt(getInvestimentoProduto(imp, prod))}</strong></div>
                         </div>
                     </div>
                 `;
@@ -878,6 +904,7 @@
                         <div class="cost-box ${cor}">
                             <div class="cost-label">Investimento Total</div>
                             <div class="cost-value">${fmt(prod.totalCusto)}</div>
+                            <div class="cost-product" style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 8px;">Investimento Produto<br><strong>${fmt(prod.totalEncomendado > 0 ? (prod.totalCusto / prod.totalAproveitavel * prod.totalEncomendado) : 0)}</strong></div>
                         </div>
                     </div>
                 `;
