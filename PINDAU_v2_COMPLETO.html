@@ -498,10 +498,10 @@
                 container: "352",
                 status: "🟡 Em Armazém",
                 nf: "Desembaraçada",
-                custos: { produtos: 20156.70, impostos: 16425.00, logistica: 2464.88, total: 39046.58 },
+                custos: { produtos: 20318.27, impostos: 16425.00, logistica: 2464.88, total: 39208.15 },
                 produtos: [
-                    { nome: "FONE CONCHA TIPO D SIMPLES", ncm: "85183000", qtdNF: 2000, qtdRecebida: 2000, defeitos: 0, custoNF: 4.21, diasVenda: 90 },
-                    { nome: "FONE CONCHA TIPO D PREMIUM", ncm: "85183000", qtdNF: 1000, qtdRecebida: 1000, defeitos: 0, custoNF: 9.23, diasVenda: 90 }
+                    { nome: "FONE CONCHA TIPO D SIMPLES", ncm: "85183000", qtdNF: 2000, qtdRecebida: 2000, defeitos: 0, custoNF: 4.98, diasVenda: 90 },
+                    { nome: "FONE CONCHA TIPO D PREMIUM", ncm: "85183000", qtdNF: 1000, qtdRecebida: 1000, defeitos: 0, custoNF: 10.8352, diasVenda: 90 }
                 ]
             },
             {
@@ -560,9 +560,17 @@
             // Usar investimentos exatos da memória PINDAU para Imp 2
             if (imp.id === 2) {
                 const investimentos = {
-                    "CLIP TALKABOOT": 16017.93,
-                    "FONE PTT PRETO": 44697.37,
-                    "ALÇA DE PUNHO": 568.06
+                    "CLIP TALKABOOT": 14900,
+                    "FONE PTT PRETO": 41283,
+                    "ALÇA DE PUNHO": 525
+                };
+                return investimentos[prod.nome] || 0;
+            }
+
+            if (imp.id === 3) {
+                const investimentos = {
+                    "FONE CONCHA TIPO D SIMPLES": 17220,
+                    "FONE CONCHA TIPO D PREMIUM": 18500
                 };
                 return investimentos[prod.nome] || 0;
             }
