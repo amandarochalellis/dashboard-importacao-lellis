@@ -1540,7 +1540,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                             <div class="section-title">Defeitos/Testes</div>
                             <div class="info-row">
                                 <span>Qtd. com Defeito:</span>
-                                <input type="number" data-qtd-recebida="${prod.qtdRecebida}" data-qtd-nf="${prod.qtdNF}" data-preco="${prod.precos.comImpostos}" data-idx="${idx}" value="${prod.defeitos || 0}" onchange="atualizarValores(this)">
+                                <input type="number" data-imp-id="${imp.id}" data-qtd-recebida="${prod.qtdRecebida}" data-qtd-nf="${prod.qtdNF}" data-preco="${prod.precos.comImpostos}" data-idx="${idx}" value="${prod.defeitos || 0}" onchange="atualizarValores(this)">
                             </div>
                             <div class="info-row highlight">
                                 <span>Aproveitável:</span>
@@ -1642,7 +1642,8 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
 
             // V6.3.1 — salva a quantidade com defeito no produto correto
             // para não zerar ao trocar de importação ou recarregar a página.
-            const impAtiva = IMPORTACOES.find(i => i.id === currentImport);
+            const impId = parseInt(input.getAttribute('data-imp-id'));
+            const impAtiva = IMPORTACOES.find(i => i.id === impId);
             const idxProduto = parseInt(input.getAttribute('data-idx'));
             if (impAtiva && impAtiva.produtos[idxProduto]) {
                 impAtiva.produtos[idxProduto].defeitos = defeitos;
