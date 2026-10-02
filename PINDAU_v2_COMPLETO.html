@@ -1640,6 +1640,15 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             const preco = parseFloat(input.getAttribute('data-preco'));
             const defeitos = parseInt(input.value) || 0;
 
+            // V6.3.1 — salva a quantidade com defeito no produto correto
+            // para não zerar ao trocar de importação ou recarregar a página.
+            const impAtiva = IMPORTACOES.find(i => i.id === currentImport);
+            const idxProduto = parseInt(input.getAttribute('data-idx'));
+            if (impAtiva && impAtiva.produtos[idxProduto]) {
+                impAtiva.produtos[idxProduto].defeitos = defeitos;
+                localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
+            }
+
             const aproveitavel = qtdRecebida - defeitos;
             const investimentoProduto = qtdNF * preco; // FIXO - não muda
             const precoUnitarioReal = aproveitavel > 0 ? investimentoProduto / aproveitavel : preco;
