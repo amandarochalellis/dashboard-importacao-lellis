@@ -1496,7 +1496,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                         <div class="cost-item"><div class="cost-label">Produtos</div><div class="cost-value">${fmt(imp.custos.produtos)}</div></div>
                         <div class="cost-item"><div class="cost-label">Impostos</div><div class="cost-value">${fmt(imp.custos.impostos)}</div></div>
                         <div class="cost-item"><div class="cost-label">Logística</div><div class="cost-value">${fmt(imp.custos.logistica)}</div></div>
-                        <div class="cost-item"><div class="cost-label">Reembolso</div><input class="cost-value reimbursement-input" type="number" step="0.01" value="${imp.custos.reembolso || 0}" onchange="atualizarReembolso(${imp.id}, this.value)"></div>
+                        <div class="cost-item"><div class="cost-label">Reembolso</div><input class="cost-value reimbursement-input" type="text" inputmode="decimal" value="${fmt(imp.custos.reembolso || 0)}" onfocus="this.value = String(imp.custos.reembolso || 0).replace('.', ',')" onchange="atualizarReembolso(${imp.id}, this.value)" onblur="this.value = fmt(imp.custos.reembolso || 0)"></div>
                         <div class="cost-item"><div class="cost-label">Total</div><div class="cost-value total-importacao" style="color: #4caf50;">${fmt(imp.custos.total)}</div></div>
                     </div>
                 </div>
@@ -1579,7 +1579,8 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
         function atualizarReembolso(impId, valor) {
             const imp = IMPORTACOES.find(i => i.id === impId);
             if (!imp) return;
-            const reembolsoAtual = parseFloat(valor) || 0;
+            const valorLimpo = String(valor).replace(/R\$\s?/g, '').replace(/\./g, '').replace(',', '.').trim();
+            const reembolsoAtual = parseFloat(valorLimpo) || 0;
             imp.custos.reembolso = reembolsoAtual;
             imp.custos.total = imp.custos.produtos + imp.custos.impostos + imp.custos.logistica - reembolsoAtual;
             localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
