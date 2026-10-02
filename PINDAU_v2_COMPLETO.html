@@ -1236,15 +1236,23 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
 </style>
 
 <style>
-/* V6 REEMBOLSO — mantém a estética aprovada e compacta levemente os cards de produto. */
+/* V6.3 CUSTOS EDITÁVEIS — mesma estética aprovada; somente a edição fica branco/preto. */
 .cost-summary { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
-.reimbursement-input {
+.cost-edit-input {
   display:block !important; width:100% !important; min-width:0 !important; height:auto !important;
   margin:0 !important; padding:0 !important; border:0 !important; outline:0 !important;
   background:transparent !important; text-align:center !important; font-family:inherit !important;
+  color:#49e596 !important; font-size:inherit !important; font-weight:inherit !important;
   appearance:textfield; -moz-appearance:textfield;
 }
-.reimbursement-input::-webkit-outer-spin-button,.reimbursement-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+.cost-edit-input:focus {
+  background:#fff !important;
+  color:#111 !important;
+  border:1px solid #d7d7d7 !important;
+  border-radius:5px !important;
+  padding:1px 6px !important;
+}
+.cost-edit-input::-webkit-outer-spin-button,.cost-edit-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
 /* somente cards dos produtos: um pouco menores em largura e altura */
 .products-grid { column-gap: 4px !important; row-gap: 4px !important; }
 .product-header { padding: 7px 10px !important; }
@@ -1493,10 +1501,10 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                         <div class="info-item"><span class="info-label">Status:</span> ${imp.status}</div>
                     </div>
                     <div class="cost-summary">
-                        <div class="cost-item"><div class="cost-label">Produtos</div><div class="cost-value">${fmt(imp.custos.produtos)}</div></div>
-                        <div class="cost-item"><div class="cost-label">Impostos</div><div class="cost-value">${fmt(imp.custos.impostos)}</div></div>
-                        <div class="cost-item"><div class="cost-label">Logística</div><div class="cost-value">${fmt(imp.custos.logistica)}</div></div>
-                        <div class="cost-item"><div class="cost-label">Reembolso</div><input class="cost-value reimbursement-input" type="text" inputmode="decimal" value="${fmt(imp.custos.reembolso || 0)}" onfocus="this.value = String(imp.custos.reembolso || 0).replace('.', ',')" onchange="atualizarReembolso(${imp.id}, this.value)" onblur="this.value = fmt(imp.custos.reembolso || 0)"></div>
+                        <div class="cost-item"><div class="cost-label">Produtos</div><input class="cost-value cost-edit-input" type="text" inputmode="decimal" value="${fmt(imp.custos.produtos)}" onfocus="prepararEdicaoCusto(this, imp.custos.produtos)" onkeydown="finalizarEdicaoComEnter(event)" onblur="atualizarCustoImportacao(${imp.id}, 'produtos', this.value)"></div>
+                        <div class="cost-item"><div class="cost-label">Impostos</div><input class="cost-value cost-edit-input" type="text" inputmode="decimal" value="${fmt(imp.custos.impostos)}" onfocus="prepararEdicaoCusto(this, imp.custos.impostos)" onkeydown="finalizarEdicaoComEnter(event)" onblur="atualizarCustoImportacao(${imp.id}, 'impostos', this.value)"></div>
+                        <div class="cost-item"><div class="cost-label">Logística</div><input class="cost-value cost-edit-input" type="text" inputmode="decimal" value="${fmt(imp.custos.logistica)}" onfocus="prepararEdicaoCusto(this, imp.custos.logistica)" onkeydown="finalizarEdicaoComEnter(event)" onblur="atualizarCustoImportacao(${imp.id}, 'logistica', this.value)"></div>
+                        <div class="cost-item"><div class="cost-label">Reembolso</div><input class="cost-value cost-edit-input" type="text" inputmode="decimal" value="${fmt(imp.custos.reembolso || 0)}" onfocus="prepararEdicaoCusto(this, imp.custos.reembolso || 0)" onkeydown="finalizarEdicaoComEnter(event)" onblur="atualizarCustoImportacao(${imp.id}, 'reembolso', this.value)"></div>
                         <div class="cost-item"><div class="cost-label">Total</div><div class="cost-value total-importacao" style="color: #4caf50;">${fmt(imp.custos.total)}</div></div>
                     </div>
                 </div>
@@ -1576,15 +1584,46 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             document.getElementById('conteudoImportacoes').innerHTML = html;
         }
 
-        function atualizarReembolso(impId, valor) {
+        function valorMoedaParaNumero(valor) {
+            const valorLimpo = String(valor)
+                .replace(/R\$\s?/g, '')
+                .replace(/\s/g, '')
+                .replace(/\./g, '')
+                .replace(',', '.')
+                .trim();
+            return parseFloat(valorLimpo) || 0;
+        }
+
+        function prepararEdicaoCusto(input, valorAtual) {
+            input.value = Number(valorAtual || 0).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            input.select();
+        }
+
+        function finalizarEdicaoComEnter(event) {
+            if (event.key === 'Enter') event.target.blur();
+        }
+
+        function atualizarCustoImportacao(impId, campo, valor) {
             const imp = IMPORTACOES.find(i => i.id === impId);
-            if (!imp) return;
-            const valorLimpo = String(valor).replace(/R\$\s?/g, '').replace(/\./g, '').replace(',', '.').trim();
-            const reembolsoAtual = parseFloat(valorLimpo) || 0;
-            imp.custos.reembolso = reembolsoAtual;
-            imp.custos.total = imp.custos.produtos + imp.custos.impostos + imp.custos.logistica - reembolsoAtual;
+            if (!imp || !['produtos', 'impostos', 'logistica', 'reembolso'].includes(campo)) return;
+
+            imp.custos[campo] = valorMoedaParaNumero(valor);
+            imp.custos.total =
+                imp.custos.produtos +
+                imp.custos.impostos +
+                imp.custos.logistica -
+                (imp.custos.reembolso || 0);
+
             localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
             selecionarImportacao(impId);
+        }
+
+        // Mantida por compatibilidade com versões anteriores.
+        function atualizarReembolso(impId, valor) {
+            atualizarCustoImportacao(impId, 'reembolso', valor);
         }
 
         function toggleCard(header) {
@@ -1808,7 +1847,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
         if (importacoesSalvas) {
             try {
                 const parsed = JSON.parse(importacoesSalvas);
-                if (parsed.length > IMPORTACOES.length) {
+                if (Array.isArray(parsed) && parsed.length) {
                     IMPORTACOES.splice(0, IMPORTACOES.length, ...parsed);
                     parsed.forEach(imp => {
                         if (imp.id > 4) criarBotaoNovaImportacao(imp.id);
