@@ -1234,6 +1234,29 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
 @media(max-width:1100px){.products-grid.importacao-2-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}}
 @media(max-width:760px){.products-grid.importacao-2-grid{grid-template-columns:1fr!important;}}
 </style>
+
+<style>
+/* V6 REEMBOLSO — mantém a estética aprovada e compacta levemente os cards de produto. */
+.cost-summary { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+.reimbursement-input {
+  display:block !important; width:100% !important; min-width:0 !important; height:auto !important;
+  margin:0 !important; padding:0 !important; border:0 !important; outline:0 !important;
+  background:transparent !important; text-align:center !important; font-family:inherit !important;
+  appearance:textfield; -moz-appearance:textfield;
+}
+.reimbursement-input::-webkit-outer-spin-button,.reimbursement-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+/* somente cards dos produtos: um pouco menores em largura e altura */
+.products-grid { column-gap: 4px !important; row-gap: 4px !important; }
+.product-header { padding: 7px 10px !important; }
+.product-body { padding: 6px 10px 8px !important; }
+.product-body.open { padding-top: 5px !important; padding-bottom: 7px !important; }
+.product-body .section-title { margin-top: 4px !important; margin-bottom: 1px !important; }
+.product-body .info-row { min-height: 18px !important; margin-bottom: 0 !important; }
+.product-body .info-row.highlight { margin-top: 1px !important; margin-bottom: 3px !important; padding-top: 4px !important; padding-bottom: 4px !important; }
+.product-body > div[style*="grid-template-columns"] { gap: 4px !important; }
+.product-body > div[style*="grid-template-columns"] > div { padding-top: 5px !important; padding-bottom: 5px !important; min-height: 44px !important; }
+@media (max-width: 900px) { .cost-summary { grid-template-columns: repeat(2,minmax(0,1fr)) !important; } }
+</style>
 </head>
 <body>
     <div class="container">
@@ -1369,7 +1392,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                 cnpj: "74.359.894/0001-47",
                 nf: "001 • 25/02/2026",
                 status: "✅ Concluída",
-                custos: { produtos: 13978.52, impostos: 9770, logistica: 2814.53, total: 26563.05 },
+                custos: { produtos: 13978.52, impostos: 9770, logistica: 2814.53, reembolso: 0, total: 26563.05 },
                 produtos: [
                     {
                         nome: "CLIP TALKABOOT", ncm: "39269090", qtdNF: 2000, qtdRecebida: 2000, defeitos: 0,
@@ -1388,7 +1411,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                 entrega: "13/08/2026",
                 nf: "007/08/2026",
                 status: "🚢 Entregue",
-                custos: { produtos: 34235.28, impostos: 23799.87, logistica: 3248.21, total: 61283.36 },
+                custos: { produtos: 34235.28, impostos: 23799.87, logistica: 3248.21, reembolso: 0, total: 61283.36 },
                 produtos: [
                     {
                         nome: "CLIP TALKABOOT", ncm: "39269090", qtdNF: 5000, qtdRecebida: 5005, defeitos: 0,
@@ -1411,7 +1434,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                 entrega: "Em Armazém",
                 nf: "Desembaraçada",
                 status: "🟡 Em Armazém",
-                custos: { produtos: 20318.27, impostos: 16425, logistica: 2464.88, total: 39208.15 },
+                custos: { produtos: 20318.27, impostos: 16425, logistica: 2464.88, reembolso: 0, total: 39208.15 },
                 produtos: [
                     {
                         nome: "FONE CONCHA TIPO D SIMPLES", ncm: "85183000", qtdNF: 2000, qtdRecebida: 2000, defeitos: 0,
@@ -1430,7 +1453,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                 entrega: "Aguardando",
                 nf: "JUL 23, 2026",
                 status: "🔄 Iniciada",
-                custos: { produtos: 34994.81, impostos: 0, logistica: 5179.30, total: 40174.11 },
+                custos: { produtos: 34994.81, impostos: 0, logistica: 5179.30, reembolso: 0, total: 40174.11 },
                 produtos: [
                     {
                         nome: "ANTENA LR701 PARA RÁDIO", ncm: "85283000", qtdNF: 1500, qtdRecebida: 1500, defeitos: 0,
@@ -1473,7 +1496,8 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                         <div class="cost-item"><div class="cost-label">Produtos</div><div class="cost-value">${fmt(imp.custos.produtos)}</div></div>
                         <div class="cost-item"><div class="cost-label">Impostos</div><div class="cost-value">${fmt(imp.custos.impostos)}</div></div>
                         <div class="cost-item"><div class="cost-label">Logística</div><div class="cost-value">${fmt(imp.custos.logistica)}</div></div>
-                        <div class="cost-item"><div class="cost-label">Total</div><div class="cost-value" style="color: #4caf50;">${fmt(imp.custos.total)}</div></div>
+                        <div class="cost-item"><div class="cost-label">Reembolso</div><input class="cost-value reimbursement-input" type="number" step="0.01" value="${imp.custos.reembolso || 0}" onchange="atualizarReembolso(${imp.id}, this.value)"></div>
+                        <div class="cost-item"><div class="cost-label">Total</div><div class="cost-value total-importacao" style="color: #4caf50;">${fmt(imp.custos.total)}</div></div>
                     </div>
                 </div>
             `;
@@ -1550,6 +1574,16 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             });
             html += `</div>`;
             document.getElementById('conteudoImportacoes').innerHTML = html;
+        }
+
+        function atualizarReembolso(impId, valor) {
+            const imp = IMPORTACOES.find(i => i.id === impId);
+            if (!imp) return;
+            const reembolsoAtual = parseFloat(valor) || 0;
+            imp.custos.reembolso = reembolsoAtual;
+            imp.custos.total = imp.custos.produtos + imp.custos.impostos + imp.custos.logistica - reembolsoAtual;
+            localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
+            selecionarImportacao(impId);
         }
 
         function toggleCard(header) {
@@ -1730,7 +1764,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                 entrega: entrega,
                 nf: new Date().toLocaleDateString('pt-BR'),
                 status: status,
-                custos: { produtos, impostos, logistica, total },
+                custos: { produtos, impostos, logistica, reembolso: 0, total },
                 produtos: [novoProduto]
             };
 
