@@ -1504,7 +1504,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                     <div class="product-card ${cor}">
                         <div class="product-header" onclick="toggleCard(this)">
                             <div>
-                                <div class="product-name">${prod.nome}</div>
+                                <input type="text" value="${prod.nome}" onchange="atualizarNomeProduto(${id}, ${idx}, this.value)" style="background:transparent;border:none;border-bottom:1px dashed #bbb;color:#1a1a2e;font:inherit;font-size:20px;font-weight:800;width:100%;padding:0 0 2px 0;">
                                 <div class="product-sku">NCM ${prod.ncm}</div>
                             </div>
                             <div class="toggle-icon">▼</div>
@@ -1565,6 +1565,14 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             });
             html += `</div>`;
             document.getElementById('conteudoImportacoes').innerHTML = html;
+        }
+
+        function atualizarNomeProduto(impId, idx, valor) {
+            const imp = IMPORTACOES.find(i => i.id === impId);
+            if (!imp || !imp.produtos[idx]) return;
+            imp.produtos[idx].nome = valor.trim() || imp.produtos[idx].nome;
+            localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
+            selecionarImportacao(impId);
         }
 
         function atualizarInfo(impId, campo, valor) {
