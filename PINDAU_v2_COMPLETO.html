@@ -1691,7 +1691,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                             </div>
                             <div class="info-row">
                                 <span>Estoque Atual:</span>
-                                <input type="number" value="${estoqueAtual}" onchange="localStorage.setItem('est_${nome}', this.value)">
+                                <input type="number" value="${estoqueAtual}" onchange="localStorage.setItem('est_${nome}', this.value); renderizarProdutos();">
                             </div>
 
                             <div class="section-title">Custo</div>
