@@ -1458,6 +1458,13 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             }
         ];
 
+        function parseBRL(v) {
+            if (typeof v === 'number') return v;
+            let t = String(v).replace(/R\$|\s/g, '');
+            if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+            return parseFloat(t) || 0;
+        }
+
         function fmt(v) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
         }
@@ -1471,6 +1478,11 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
         }
 
         function selecionarImportacao(id) {
+            // Mantém abertos os cards de produto que já estavam abertos (edição não fecha o card)
+            const _abertosAntes = [...document.querySelectorAll('#conteudoImportacoes .product-card')]
+                .map((c, i) => c.querySelector('.product-body.open') ? i : -1).filter(i => i >= 0);
+            const _mesmaImportacao = window._impAtual === id;
+            window._impAtual = id;
             const imp = IMPORTACOES.find(i => i.id === id);
             const totalComImpostos = imp.produtos.reduce((sum, p) => sum + (p.qtdNF * p.precos.comImpostos), 0);
 
@@ -1484,10 +1496,10 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                         <div class="info-item"><span class="info-label">Status:</span> ${imp.status}</div>
                     </div>
                     <div class="cost-summary">
-                        <div class="cost-item"><div class="cost-label">Produtos</div><input class="cost-value reimbursement-input" type="number" step="0.01" value="${imp.custos.produtos || 0}" onchange="atualizarCusto(${imp.id}, 'produtos', this.value)"></div>
-                        <div class="cost-item"><div class="cost-label">Impostos</div><input class="cost-value reimbursement-input" type="number" step="0.01" value="${imp.custos.impostos || 0}" onchange="atualizarCusto(${imp.id}, 'impostos', this.value)"></div>
-                        <div class="cost-item"><div class="cost-label">Logística</div><input class="cost-value reimbursement-input" type="number" step="0.01" value="${imp.custos.logistica || 0}" onchange="atualizarCusto(${imp.id}, 'logistica', this.value)"></div>
-                        <div class="cost-item"><div class="cost-label">Reembolso</div><input class="cost-value reimbursement-input" type="number" step="0.01" value="${imp.custos.reembolso || 0}" onchange="atualizarReembolso(${imp.id}, this.value)"></div>
+                        <div class="cost-item"><div class="cost-label">Produtos</div><input class="cost-value reimbursement-input" type="text" value="${fmt(imp.custos.produtos || 0)}" onchange="atualizarCusto(${imp.id}, 'produtos', parseBRL(this.value))"></div>
+                        <div class="cost-item"><div class="cost-label">Impostos</div><input class="cost-value reimbursement-input" type="text" value="${fmt(imp.custos.impostos || 0)}" onchange="atualizarCusto(${imp.id}, 'impostos', parseBRL(this.value))"></div>
+                        <div class="cost-item"><div class="cost-label">Logística</div><input class="cost-value reimbursement-input" type="text" value="${fmt(imp.custos.logistica || 0)}" onchange="atualizarCusto(${imp.id}, 'logistica', parseBRL(this.value))"></div>
+                        <div class="cost-item"><div class="cost-label">Reembolso</div><input class="cost-value reimbursement-input" type="text" value="${fmt(imp.custos.reembolso || 0)}" onchange="atualizarReembolso(${imp.id}, parseBRL(this.value))"></div>
                         <div class="cost-item"><div class="cost-label">Total</div><div class="cost-value total-importacao" style="color: #4caf50;">${fmt(imp.custos.total)}</div></div>
                     </div>
                 </div>
@@ -1497,6 +1509,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             imp.produtos.forEach((prod, idx) => {
                 const investimentoProduto = prod.qtdNF * prod.precos.finalComDefeitos;
                 const proporcao = (prod.qtdNF * prod.precos.comImpostos) / totalComImpostos;
+                const comImp = prod.precos.comImpostos;
                 const investimentoTotal = proporcao * imp.custos.total;
                 const cor = prod.nome.includes('CLIP') ? 'clip' : prod.nome.includes('ALÇA') ? 'alca' : prod.nome.includes('ANTENA') ? 'antena' : 'fone';
 
@@ -1517,13 +1530,13 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                             </div>
                             <div class="info-row">
                                 <span>Recebida:</span>
-                                <input type="number" value="${prod.qtdRecebida}" onchange="this.value">
+                                <input type="number" value="${prod.qtdRecebida}" onchange="atualizarQtdProduto(${id}, ${idx}, 'qtd', this.value)">
                             </div>
 
                             <div class="section-title">Defeitos/Testes</div>
                             <div class="info-row">
                                 <span>Qtd. com Defeito:</span>
-                                <input type="number" data-qtd-recebida="${prod.qtdRecebida}" data-qtd-nf="${prod.qtdNF}" data-preco="${prod.precos.comImpostos}" data-idx="${idx}" value="${prod.defeitos || 0}" onchange="atualizarValores(this)">
+                                <input type="number" data-qtd-recebida="${prod.qtdRecebida}" data-qtd-nf="${prod.qtdNF}" data-preco="${comImp}" data-idx="${idx}" value="${prod.defeitos || 0}" onchange="atualizarQtdProduto(${id}, ${idx}, 'def', this.value)">
                             </div>
                             <div class="info-row highlight">
                                 <span>Aproveitável:</span>
@@ -1542,7 +1555,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                                 </div>
                                 <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; border-left: 4px solid #22b573;">
                                     <div style="font-size: 11px; color: #22b573; font-weight: 600; text-transform: uppercase;">Final (Defeitos)</div>
-                                    <div class="card-valor-final" style="font-size: 16px; font-weight: 700; color: #22b573; margin-top: 4px;" data-qtd-recebida="${prod.qtdRecebida}" data-investimento-total="${investimentoTotal}" data-defeitos="${prod.defeitos || 0}">${fmt(prod.precos.comImpostos)}</div>
+                                    <div class="card-valor-final" style="font-size: 16px; font-weight: 700; color: #22b573; margin-top: 4px;" data-qtd-recebida="${prod.qtdRecebida}" data-investimento-total="${investimentoTotal}" data-defeitos="${prod.defeitos || 0}">${fmt(comImp)}</div>
                                 </div>
                                 <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; border-left: 4px solid #ff9800;">
                                     <div style="font-size: 11px; color: #ff9800; font-weight: 600; text-transform: uppercase;">Custo Final</div>
@@ -1565,6 +1578,14 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             });
             html += `</div>`;
             document.getElementById('conteudoImportacoes').innerHTML = html;
+            if (_mesmaImportacao) {
+                document.querySelectorAll('#conteudoImportacoes .product-card').forEach((c, i) => {
+                    if (_abertosAntes.includes(i)) {
+                        c.querySelector('.product-body')?.classList.add('open');
+                        c.querySelector('.toggle-icon')?.classList.add('open');
+                    }
+                });
+            }
         }
 
         function atualizarNomeProduto(impId, idx, valor) {
@@ -1583,6 +1604,16 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             selecionarImportacao(impId);
         }
 
+        function atualizarQtdProduto(impId, idx, campo, valor) {
+            const imp = IMPORTACOES.find(i => i.id === impId);
+            if (!imp || !imp.produtos[idx]) return;
+            const v = parseInt(valor) || 0;
+            if (campo === 'qtd') imp.produtos[idx].qtdRecebida = v;
+            if (campo === 'def') imp.produtos[idx].defeitos = v;
+            localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
+            selecionarImportacao(impId);
+        }
+
         function atualizarInfo(impId, campo, valor) {
             const imp = IMPORTACOES.find(i => i.id === impId);
             if (!imp) return;
@@ -1597,6 +1628,18 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             const prod = imp.produtos.find(p => p.nome === prodNome);
             if (!prod) return;
             prod.precos[campo] = parseFloat(valor) || 0;
+            if (campo === 'original') {
+                // Ao preencher a NF Original, o Total da importação é dividido pelo valor da NF (qtd × NF Original)
+                const somaNF = imp.produtos.reduce((sum, p) => sum + (p.qtdNF * p.precos.original), 0);
+                if (somaNF > 0) {
+                    imp.produtos.forEach(p => {
+                        if (p.qtdNF > 0) {
+                            p.precos.comImpostos = ((p.qtdNF * p.precos.original) / somaNF) * imp.custos.total / p.qtdNF;
+                            p.precos.finalComDefeitos = p.precos.comImpostos;
+                        }
+                    });
+                }
+            }
             if (campo === 'comImpostos') prod.precos.finalComDefeitos = prod.precos.comImpostos;
             localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
             selecionarImportacao(impId);
