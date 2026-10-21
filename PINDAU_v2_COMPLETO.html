@@ -1236,23 +1236,15 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
 </style>
 
 <style>
-/* V6.3 CUSTOS EDITÁVEIS — mesma estética aprovada; somente a edição fica branco/preto. */
+/* V6 REEMBOLSO — mantém a estética aprovada e compacta levemente os cards de produto. */
 .cost-summary { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
-.cost-edit-input {
+.reimbursement-input {
   display:block !important; width:100% !important; min-width:0 !important; height:auto !important;
   margin:0 !important; padding:0 !important; border:0 !important; outline:0 !important;
   background:transparent !important; text-align:center !important; font-family:inherit !important;
-  color:#49e596 !important; font-size:inherit !important; font-weight:inherit !important;
   appearance:textfield; -moz-appearance:textfield;
 }
-.cost-edit-input:focus {
-  background:#fff !important;
-  color:#111 !important;
-  border:1px solid #d7d7d7 !important;
-  border-radius:5px !important;
-  padding:1px 6px !important;
-}
-.cost-edit-input::-webkit-outer-spin-button,.cost-edit-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+.reimbursement-input::-webkit-outer-spin-button,.reimbursement-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
 /* somente cards dos produtos: um pouco menores em largura e altura */
 .products-grid { column-gap: 4px !important; row-gap: 4px !important; }
 .product-header { padding: 7px 10px !important; }
@@ -1355,7 +1347,8 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                     <div class="modal-section-title">Dados da Importação</div>
                     <input type="text" id="novaPedido" placeholder="Pedido (ex: 2026-ABCDE)">
                     <input type="text" id="novaCNPJ" placeholder="CNPJ (ex: 00.000.000/0000-00)">
-                    <input type="text" id="novaEntrega" placeholder="Entrega (ex: dd/mm/yyyy)">
+                    <input type="text" id="novaEntrega" placeholder="Entrega (deixe vazio se ainda não chegou)">
+                    <input type="text" id="novaNF" placeholder="NF (deixe vazio se ainda não emitida)">
                     <input type="text" id="novaStatus" placeholder="Status (ex: 🚢 Entregue)">
                 </div>
 
@@ -1371,18 +1364,8 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                     </div>
                 </div>
 
-                <div class="modal-section">
-                    <div class="modal-section-title">Produto 1</div>
-                    <input type="text" id="novaProd1Nome" placeholder="Nome do Produto">
-                    <div class="modal-row">
-                        <input type="text" id="novaProd1NCM" placeholder="NCM">
-                        <input type="number" id="novaProd1QTD" placeholder="QTD NF" step="1">
-                    </div>
-                    <div class="modal-row">
-                        <input type="number" id="novaProd1Original" placeholder="Preço Original (R$)" step="0.01">
-                        <input type="number" id="novaProd1ComImpostos" placeholder="Com Impostos (R$)" step="0.01">
-                    </div>
-                </div>
+                <div id="novaProdutosContainer"></div>
+                <button class="btn" onclick="adicionarBlocoProduto()" style="margin-bottom: 15px;">+ Adicionar produto</button>
 
                 <div class="btn-group">
                     <button class="btn btn-cancel" onclick="fecharModal()">Cancelar</button>
@@ -1496,15 +1479,15 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                     <div class="import-title">Importação #${imp.id} — ${imp.pedido}</div>
                     <div class="import-info">
                         <div class="info-item"><span class="info-label">CNPJ:</span> ${imp.cnpj}</div>
-                        ${imp.entrega && imp.entrega !== "Aguardando" ? `<div class="info-item"><span class="info-label">Entrega:</span> ${imp.entrega}</div>` : ''}
-                        <div class="info-item"><span class="info-label">NF:</span> ${imp.nf}</div>
+                        <div class="info-item"><span class="info-label">Entrega:</span> <input type="text" style="background:transparent;border:1px solid #bbb;color:inherit;padding:2px 6px;border-radius:6px;font-size:13px;width:160px;" value="${imp.entrega || ''}" onchange="atualizarInfo(${imp.id}, 'entrega', this.value)"></div>
+                        <div class="info-item"><span class="info-label">NF:</span> <input type="text" style="background:transparent;border:1px solid #bbb;color:inherit;padding:2px 6px;border-radius:6px;font-size:13px;width:160px;" value="${imp.nf || ''}" onchange="atualizarInfo(${imp.id}, 'nf', this.value)"></div>
                         <div class="info-item"><span class="info-label">Status:</span> ${imp.status}</div>
                     </div>
                     <div class="cost-summary">
-                        <div class="cost-item"><div class="cost-label">Produtos</div><input class="cost-value cost-edit-input" type="text" inputmode="decimal" value="${fmt(imp.custos.produtos)}" onfocus="prepararEdicaoCusto(this, imp.custos.produtos)" onkeydown="finalizarEdicaoComEnter(event)" onblur="atualizarCustoImportacao(${imp.id}, 'produtos', this.value)"></div>
-                        <div class="cost-item"><div class="cost-label">Impostos</div><input class="cost-value cost-edit-input" type="text" inputmode="decimal" value="${fmt(imp.custos.impostos)}" onfocus="prepararEdicaoCusto(this, imp.custos.impostos)" onkeydown="finalizarEdicaoComEnter(event)" onblur="atualizarCustoImportacao(${imp.id}, 'impostos', this.value)"></div>
-                        <div class="cost-item"><div class="cost-label">Logística</div><input class="cost-value cost-edit-input" type="text" inputmode="decimal" value="${fmt(imp.custos.logistica)}" onfocus="prepararEdicaoCusto(this, imp.custos.logistica)" onkeydown="finalizarEdicaoComEnter(event)" onblur="atualizarCustoImportacao(${imp.id}, 'logistica', this.value)"></div>
-                        <div class="cost-item"><div class="cost-label">Reembolso</div><input class="cost-value cost-edit-input" type="text" inputmode="decimal" value="${fmt(imp.custos.reembolso || 0)}" onfocus="prepararEdicaoCusto(this, imp.custos.reembolso || 0)" onkeydown="finalizarEdicaoComEnter(event)" onblur="atualizarCustoImportacao(${imp.id}, 'reembolso', this.value)"></div>
+                        <div class="cost-item"><div class="cost-label">Produtos</div><input class="cost-value reimbursement-input" type="number" step="0.01" value="${imp.custos.produtos || 0}" onchange="atualizarCusto(${imp.id}, 'produtos', this.value)"></div>
+                        <div class="cost-item"><div class="cost-label">Impostos</div><input class="cost-value reimbursement-input" type="number" step="0.01" value="${imp.custos.impostos || 0}" onchange="atualizarCusto(${imp.id}, 'impostos', this.value)"></div>
+                        <div class="cost-item"><div class="cost-label">Logística</div><input class="cost-value reimbursement-input" type="number" step="0.01" value="${imp.custos.logistica || 0}" onchange="atualizarCusto(${imp.id}, 'logistica', this.value)"></div>
+                        <div class="cost-item"><div class="cost-label">Reembolso</div><input class="cost-value reimbursement-input" type="number" step="0.01" value="${imp.custos.reembolso || 0}" onchange="atualizarReembolso(${imp.id}, this.value)"></div>
                         <div class="cost-item"><div class="cost-label">Total</div><div class="cost-value total-importacao" style="color: #4caf50;">${fmt(imp.custos.total)}</div></div>
                     </div>
                 </div>
@@ -1540,7 +1523,7 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                             <div class="section-title">Defeitos/Testes</div>
                             <div class="info-row">
                                 <span>Qtd. com Defeito:</span>
-                                <input type="number" data-imp-id="${imp.id}" data-qtd-recebida="${prod.qtdRecebida}" data-qtd-nf="${prod.qtdNF}" data-preco="${prod.precos.comImpostos}" data-idx="${idx}" value="${prod.defeitos || 0}" onchange="atualizarValores(this)">
+                                <input type="number" data-qtd-recebida="${prod.qtdRecebida}" data-qtd-nf="${prod.qtdNF}" data-preco="${prod.precos.comImpostos}" data-idx="${idx}" value="${prod.defeitos || 0}" onchange="atualizarValores(this)">
                             </div>
                             <div class="info-row highlight">
                                 <span>Aproveitável:</span>
@@ -1551,11 +1534,11 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px;">
                                 <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; border-left: 4px solid #999;">
                                     <div style="font-size: 11px; color: #999; font-weight: 600; text-transform: uppercase;">NF Original</div>
-                                    <div style="font-size: 16px; font-weight: 700; color: #333; margin-top: 4px;">${fmt(prod.precos.original)}</div>
+                                    <input type="number" step="0.01" style="background:transparent;border:1px solid #bbb;color:#333;padding:2px 6px;border-radius:6px;font-size:14px;font-weight:700;width:120px;margin-top:4px;" value="${prod.precos.original}" onchange="atualizarPreco(${id}, '${prod.nome}', 'original', this.value)">
                                 </div>
                                 <div style="background: #f0f7ff; padding: 12px; border-radius: 8px; border-left: 4px solid #2196f3;">
                                     <div style="font-size: 11px; color: #2196f3; font-weight: 600; text-transform: uppercase;">Com Impostos</div>
-                                    <div style="font-size: 16px; font-weight: 700; color: #2196f3; margin-top: 4px;">${fmt(prod.precos.comImpostos)}</div>
+                                    <input type="number" step="0.01" style="background:transparent;border:1px solid #bbb;color:#2196f3;padding:2px 6px;border-radius:6px;font-size:14px;font-weight:700;width:120px;margin-top:4px;" value="${prod.precos.comImpostos}" onchange="atualizarPreco(${id}, '${prod.nome}', 'comImpostos', this.value)">
                                 </div>
                                 <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; border-left: 4px solid #22b573;">
                                     <div style="font-size: 11px; color: #22b573; font-weight: 600; text-transform: uppercase;">Final (Defeitos)</div>
@@ -1584,46 +1567,42 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             document.getElementById('conteudoImportacoes').innerHTML = html;
         }
 
-        function valorMoedaParaNumero(valor) {
-            const valorLimpo = String(valor)
-                .replace(/R\$\s?/g, '')
-                .replace(/\s/g, '')
-                .replace(/\./g, '')
-                .replace(',', '.')
-                .trim();
-            return parseFloat(valorLimpo) || 0;
-        }
-
-        function prepararEdicaoCusto(input, valorAtual) {
-            input.value = Number(valorAtual || 0).toLocaleString('pt-BR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-            input.select();
-        }
-
-        function finalizarEdicaoComEnter(event) {
-            if (event.key === 'Enter') event.target.blur();
-        }
-
-        function atualizarCustoImportacao(impId, campo, valor) {
+        function atualizarInfo(impId, campo, valor) {
             const imp = IMPORTACOES.find(i => i.id === impId);
-            if (!imp || !['produtos', 'impostos', 'logistica', 'reembolso'].includes(campo)) return;
-
-            imp.custos[campo] = valorMoedaParaNumero(valor);
-            imp.custos.total =
-                imp.custos.produtos +
-                imp.custos.impostos +
-                imp.custos.logistica -
-                (imp.custos.reembolso || 0);
-
+            if (!imp) return;
+            imp[campo] = valor.trim() || (campo === 'entrega' ? 'Aguardando' : 'Aguardando NF');
             localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
             selecionarImportacao(impId);
         }
 
-        // Mantida por compatibilidade com versões anteriores.
+        function atualizarPreco(impId, prodNome, campo, valor) {
+            const imp = IMPORTACOES.find(i => i.id === impId);
+            if (!imp) return;
+            const prod = imp.produtos.find(p => p.nome === prodNome);
+            if (!prod) return;
+            prod.precos[campo] = parseFloat(valor) || 0;
+            if (campo === 'comImpostos') prod.precos.finalComDefeitos = prod.precos.comImpostos;
+            localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
+            selecionarImportacao(impId);
+        }
+
+        function atualizarCusto(impId, campo, valor) {
+            const imp = IMPORTACOES.find(i => i.id === impId);
+            if (!imp) return;
+            imp.custos[campo] = parseFloat(valor) || 0;
+            imp.custos.total = imp.custos.produtos + imp.custos.impostos + imp.custos.logistica - (imp.custos.reembolso || 0);
+            localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
+            selecionarImportacao(impId);
+        }
+
         function atualizarReembolso(impId, valor) {
-            atualizarCustoImportacao(impId, 'reembolso', valor);
+            const imp = IMPORTACOES.find(i => i.id === impId);
+            if (!imp) return;
+            const reembolsoAtual = parseFloat(valor) || 0;
+            imp.custos.reembolso = reembolsoAtual;
+            imp.custos.total = imp.custos.produtos + imp.custos.impostos + imp.custos.logistica - reembolsoAtual;
+            localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
+            selecionarImportacao(impId);
         }
 
         function toggleCard(header) {
@@ -1639,16 +1618,6 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             const qtdNF = parseInt(input.getAttribute('data-qtd-nf'));
             const preco = parseFloat(input.getAttribute('data-preco'));
             const defeitos = parseInt(input.value) || 0;
-
-            // V6.3.1 — salva a quantidade com defeito no produto correto
-            // para não zerar ao trocar de importação ou recarregar a página.
-            const impId = parseInt(input.getAttribute('data-imp-id'));
-            const impAtiva = IMPORTACOES.find(i => i.id === impId);
-            const idxProduto = parseInt(input.getAttribute('data-idx'));
-            if (impAtiva && impAtiva.produtos[idxProduto]) {
-                impAtiva.produtos[idxProduto].defeitos = defeitos;
-                localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
-            }
 
             const aproveitavel = qtdRecebida - defeitos;
             const investimentoProduto = qtdNF * preco; // FIXO - não muda
@@ -1767,23 +1736,41 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
             document.getElementById('novaPedido').value = '';
             document.getElementById('novaCNPJ').value = '';
             document.getElementById('novaEntrega').value = '';
+            document.getElementById('novaNF').value = '';
             document.getElementById('novaStatus').value = '';
             document.getElementById('novaProdutos').value = '';
             document.getElementById('novaImpostos').value = '';
             document.getElementById('novaLogistica').value = '';
             document.getElementById('novaTotal').value = '';
-            document.getElementById('novaProd1Nome').value = '';
-            document.getElementById('novaProd1NCM').value = '';
-            document.getElementById('novaProd1QTD').value = '';
-            document.getElementById('novaProd1Original').value = '';
-            document.getElementById('novaProd1ComImpostos').value = '';
+            document.getElementById('novaProdutosContainer').innerHTML = '';
+            adicionarBlocoProduto();
+        }
+
+        function adicionarBlocoProduto() {
+            const container = document.getElementById('novaProdutosContainer');
+            const n = container.children.length + 1;
+            const bloco = document.createElement('div');
+            bloco.className = 'modal-section novo-produto-bloco';
+            bloco.innerHTML = `
+                    <div class="modal-section-title">Produto ${n}</div>
+                    <input type="text" class="np-nome" placeholder="Nome do Produto">
+                    <div class="modal-row">
+                        <input type="text" class="np-ncm" placeholder="NCM">
+                        <input type="number" class="np-qtd" placeholder="QTD NF" step="1">
+                    </div>
+                    <div class="modal-row">
+                        <input type="number" class="np-original" placeholder="Preço Original (R$)" step="0.01">
+                        <input type="number" class="np-comimpostos" placeholder="Com Impostos (R$)" step="0.01">
+                    </div>`;
+            container.appendChild(bloco);
         }
 
         function salvarNovaImportacao() {
-            const pedido = document.getElementById('novaPedido').value;
-            const cnpj = document.getElementById('novaCNPJ').value;
-            const entrega = document.getElementById('novaEntrega').value;
-            const status = document.getElementById('novaStatus').value;
+            const pedido = document.getElementById('novaPedido').value.trim();
+            const cnpj = document.getElementById('novaCNPJ').value.trim();
+            const entregaTxt = document.getElementById('novaEntrega').value.trim();
+            const nfTxt = document.getElementById('novaNF').value.trim();
+            const status = document.getElementById('novaStatus').value.trim();
             const produtos = parseFloat(document.getElementById('novaProdutos').value) || 0;
             const impostos = parseFloat(document.getElementById('novaImpostos').value) || 0;
             const logistica = parseFloat(document.getElementById('novaLogistica').value) || 0;
@@ -1794,28 +1781,41 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                 return;
             }
 
-            const novoProduto = {
-                nome: document.getElementById('novaProd1Nome').value || 'Produto 1',
-                ncm: document.getElementById('novaProd1NCM').value || '00000000',
-                qtdNF: parseInt(document.getElementById('novaProd1QTD').value) || 0,
-                qtdRecebida: parseInt(document.getElementById('novaProd1QTD').value) || 0,
-                defeitos: 0,
-                precos: {
-                    original: parseFloat(document.getElementById('novaProd1Original').value) || 0,
-                    comImpostos: parseFloat(document.getElementById('novaProd1ComImpostos').value) || 0,
-                    finalComDefeitos: parseFloat(document.getElementById('novaProd1ComImpostos').value) || 0
-                }
-            };
+            const listaProdutos = [];
+            document.querySelectorAll('#novaProdutosContainer .novo-produto-bloco').forEach(bloco => {
+                const nome = bloco.querySelector('.np-nome').value.trim();
+                if (!nome) return;
+                const qtd = parseInt(bloco.querySelector('.np-qtd').value) || 0;
+                const original = parseFloat(bloco.querySelector('.np-original').value) || 0;
+                const comImp = parseFloat(bloco.querySelector('.np-comimpostos').value) || 0;
+                listaProdutos.push({
+                    nome: nome,
+                    ncm: bloco.querySelector('.np-ncm').value.trim() || '00000000',
+                    qtdNF: qtd,
+                    qtdRecebida: qtd,
+                    defeitos: 0,
+                    precos: {
+                        original: original,
+                        comImpostos: comImp,
+                        finalComDefeitos: comImp
+                    }
+                });
+            });
+
+            if (listaProdutos.length === 0) {
+                alert('❌ Adicione pelo menos um produto com nome!');
+                return;
+            }
 
             const novaImportacao = {
                 id: Math.max(...IMPORTACOES.map(i => i.id)) + 1,
                 pedido: pedido,
                 cnpj: cnpj,
-                entrega: entrega,
-                nf: new Date().toLocaleDateString('pt-BR'),
+                entrega: entregaTxt || 'Aguardando',
+                nf: nfTxt || 'Aguardando NF',
                 status: status,
                 custos: { produtos, impostos, logistica, reembolso: 0, total },
-                produtos: [novoProduto]
+                produtos: listaProdutos
             };
 
             IMPORTACOES.push(novaImportacao);
@@ -1857,13 +1857,42 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
         if (importacoesSalvas) {
             try {
                 const parsed = JSON.parse(importacoesSalvas);
-                if (Array.isArray(parsed) && parsed.length) {
+                if (parsed.length > IMPORTACOES.length) {
                     IMPORTACOES.splice(0, IMPORTACOES.length, ...parsed);
                     parsed.forEach(imp => {
                         if (imp.id > 4) criarBotaoNovaImportacao(imp.id);
                     });
                 }
             } catch (e) { console.log('Erro ao carregar localStorage'); }
+        }
+
+        // Correção única da Importação 2026-ORS2A (dados do pedido aprovado 25-09).
+        // Roda uma vez por navegador; depois disso, as edições da Amanda são preservadas.
+        if (!localStorage.getItem('PINDAU_FIX_ORS2A_v1')) {
+            const dadosORS2A = {
+                pedido: '2026-ORS2A',
+                cnpj: '74.359.894/0001-47',
+                entrega: 'Aguardando',
+                nf: 'Aguardando NF',
+                status: '🟡 Em Armazém (China)',
+                custos: { produtos: 37160.92, impostos: 27479.84, logistica: 3407.31, reembolso: 0, total: 68048.07 },
+                produtos: [
+                    { nome: 'FONE PTT UV-5R BF-888S', ncm: '85183000', qtdNF: 10000, qtdRecebida: 10000, defeitos: 0,
+                      precos: { original: 2.67, comImpostos: 4.94, finalComDefeitos: 4.94 } },
+                    { nome: 'ANTENA UV-5R 5RA', ncm: '85291000', qtdNF: 2000, qtdRecebida: 2000, defeitos: 0,
+                      precos: { original: 5.22, comImpostos: 9.34, finalComDefeitos: 9.34 } }
+                ]
+            };
+            let imp = IMPORTACOES.find(i => i.pedido === dadosORS2A.pedido);
+            if (imp) {
+                Object.assign(imp, dadosORS2A);
+            } else {
+                const novoId = Math.max(...IMPORTACOES.map(i => i.id)) + 1;
+                IMPORTACOES.push(Object.assign({ id: novoId }, dadosORS2A));
+                criarBotaoNovaImportacao(novoId);
+            }
+            localStorage.setItem('PINDAU_IMPORTACOES', JSON.stringify(IMPORTACOES));
+            localStorage.setItem('PINDAU_FIX_ORS2A_v1', '1');
         }
 
         selecionarImportacao(1);
