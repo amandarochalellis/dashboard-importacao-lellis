@@ -1503,9 +1503,9 @@ body { padding-top: 8px !important; padding-bottom: 14px !important; }
                 html += `
                     <div class="product-card ${cor}">
                         <div class="product-header" onclick="toggleCard(this)">
-                            <div>
-                                <input type="text" class="product-name" value="${prod.nome}" onchange="atualizarNomeProduto(${id}, ${idx}, this.value)" style="display:block;background:transparent;border:none;border-bottom:1px dashed #bbb;color:#172033!important;font-family:inherit!important;font-size:14px!important;font-weight:800!important;line-height:17px!important;width:100%;padding:0;margin:0 0 2px 0;">
-                                <div class="product-sku">NCM ${prod.ncm}</div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex:1;min-width:0;">
+                                <input type="text" class="product-name" value="${prod.nome}" onchange="atualizarNomeProduto(${id}, ${idx}, this.value)" style="display:block;background:transparent;border:none;border-bottom:1px dashed #bbb;color:#172033!important;font-family:inherit!important;font-size:14px!important;font-weight:800!important;line-height:17px!important;flex:1;min-width:0;width:100%;padding:0;margin:0;">
+                                <div class="product-sku" style="white-space:nowrap;margin:0;">NCM ${prod.ncm}</div>
                             </div>
                             <div class="toggle-icon">▼</div>
                         </div>
